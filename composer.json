@@ -1,0 +1,16 @@
+{
+    "name": "BachPedersen/PhpRiakStress",
+    "description": "Stress test php_riak extension",
+    "minimum-stability": "dev",
+    "license": "apache2",
+    "authors": [
+        {
+            "name": "Kaspar Bach Pedersen",
+            "email": "kasparp@me.com"
+        }
+    ],
+    "require": {
+        "php-riak/php-riak-stubs": "1.1.3",
+        "symfony/console": "v2.4.2"
+    }
+}
