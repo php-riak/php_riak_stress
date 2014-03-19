@@ -4,4 +4,5 @@ use Symfony\Component\Console\Application;
 
 $application = new Application();
 $application->add(new \BachPedersen\PhpRiakStress\Command\LoadDataCommand());
+$application->add(new \BachPedersen\PhpRiakStress\Command\StressGetCommand());
 $application->run();

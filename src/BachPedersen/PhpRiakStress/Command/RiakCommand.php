@@ -7,10 +7,11 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 abstract class RiakCommand extends \Symfony\Component\Console\Command\Command
 {
+
+
     protected function configure()
     {
         $this
-            ->setName('stress:load')
             ->setDescription('Prepare riak for stress test')
             ->addOption(
                 'host',
@@ -40,11 +41,9 @@ abstract class RiakCommand extends \Symfony\Component\Console\Command\Command
         $host = $input->getOption('host');
         $port = intval($input->getOption('port'));
         $bucketName = $input->getOption('bucket');
-        $connection = new \Riak\Connection($host, $port);
-        $bucket = $connection->getBucket($bucketName);
-        $this->executeRiakCommand($input, $output, $bucket);
+        $this->executeRiakCommand($input, $output, $host, $port, $bucketName);
     }
 
-    abstract function executeRiakCommand(InputInterface $input, OutputInterface $output, \Riak\Bucket $bucket);
+    abstract function executeRiakCommand(InputInterface $input, OutputInterface $output, $host, $port, $bucketName);
 
 } 

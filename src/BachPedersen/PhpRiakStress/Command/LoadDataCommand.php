@@ -8,8 +8,16 @@ use Symfony\Component\Console\Output\OutputInterface;
 class LoadDataCommand extends RiakCommand
 {
 
-    function executeRiakCommand(InputInterface $input, OutputInterface $output, \Riak\Bucket $bucket)
+    protected function configure()
     {
+        parent::configure();
+        $this->setName('stress:load');;
+    }
+
+    function executeRiakCommand(InputInterface $input, OutputInterface $output, $host, $port, $bucketName)
+    {
+        $connection = new \Riak\Connection($host, $port);
+        $bucket = $connection->getBucket($bucketName);
         for ($i=0; $i<1000; ++$i) {
             $o = new \Riak\Object($i);
             $o->setContent('plain/text');
