@@ -1,9 +1,7 @@
 <?php
 namespace BachPedersen\PhpRiakStress\Command;
 
-
-use Riak\Connection;
-use Riak\PoolInfo;
+use BachPedersen\PhpRiakStress\GetThread;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -22,30 +20,42 @@ class StressGetCommand extends RiakCommand
                 InputOption::VALUE_REQUIRED,
                 'Run gets time (S)',
                 '300'
+            )
+            ->addOption(
+                'threads',
+                null,
+                InputOption::VALUE_REQUIRED,
+                'Run gets time (S)',
+                '50'
             );
     }
 
     function executeRiakCommand(InputInterface $input, OutputInterface $output, $host, $port, $bucketName)
     {
-        // TODO Start new threads
-        $timeMs = intval($input->getOption('time'))*1000;
+        $timeMs = intval($input->getOption('time'));
+        $wantedThreads = intval($input->getOption('threads'));
         $startTime = time();
-        $i = 0;
+
+        /** @var $threads GetThread[] */
+        $threads = [];
+        for ($i = 0; $i<$wantedThreads; ++$i) {
+            $threads[$i] = new GetThread($host, $port, $bucketName);
+        }
         while ((time() - $startTime) < $timeMs) {
-            $connection = new \Riak\Connection($host, $port);
-            $bucket = $connection->getBucket($bucketName);
-            $getOutput = $bucket->get("$i");
-            $content = $getOutput->getObject()->getContent();
-            if (strcmp($content, "$i") !== 0) {
-                echo "! Difference key: $i, content: $content".PHP_EOL;
-                echo "! Num active connections $content".PoolInfo::getNumActiveConnection().PHP_EOL;
-                echo "! Num active persistent connections $content".PoolInfo::getNumActivePersistentConnection().PHP_EOL;
-                echo "! Num reconnects $content".PoolInfo::getNumReconnect().PHP_EOL;
+            for ($i = 0; $i<$wantedThreads; ++$i) {
+                if (!$threads[$i]->isRunning()) {
+                    if (strlen($threads[$i]->output) > 0) {
+                        echo $threads[$i]->output;
+                        $threads[$i]->output = "";
+                    }
+                    $threads[$i]->join();
+                    $threads[$i] = new GetThread($host, $port, $bucketName);
+                    $threads[$i]->start();
+                }
             }
-            $i++;
-            if ($i >= 1000) {
-                $i = 0;
-            }
+        }
+        for ($i = 0; $i<$wantedThreads; ++$i) {
+            $threads[$i]->join();
         }
     }
 }
